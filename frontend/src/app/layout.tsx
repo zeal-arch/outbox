@@ -1,5 +1,4 @@
 import "../styles/globals.css";
-import "../styles/satoshi.css";
 import "../styles/layout-utilities.css";
 
 import AppProviders from "@/components/providers/AppProviders";

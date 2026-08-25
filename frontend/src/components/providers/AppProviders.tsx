@@ -5,6 +5,7 @@ import { ReactLenis } from "lenis/react";
 import { LayoutGroup } from "motion/react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { AuthProvider } from "./AuthProvider";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -20,8 +21,10 @@ export default function AppProviders({ children }: AppProvidersProps) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <ReactLenis root options={{ autoRaf: true }}>
         <LayoutGroup>
-          {children}
-          <Toaster richColors position="bottom-right" />
+          <AuthProvider>
+            {children}
+            <Toaster richColors position="bottom-right" />
+          </AuthProvider>
         </LayoutGroup>
       </ReactLenis>
     </ThemeProvider>

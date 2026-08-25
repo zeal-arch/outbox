@@ -2,98 +2,142 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Inbox, Send, Heart, Moon, Sun, TrendingUp, Settings } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { Clock, Send, ChevronDown, LogOut, FileEdit } from "lucide-react";
 
-const NAV_LINKS = [
-  { href: "/dashboard", icon: Inbox, label: "Inbox" },
-  { href: "/dashboard/sent", icon: Send, label: "Sent" },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+import { cn } from "@/lib/utils";
+import Button from "@/components/ui/Button";
+import { useAuth } from "@/components/providers";
+import { useSidebar } from "./SidebarContext";
+import { toast } from "sonner";
+import { useState } from "react";
+
+const NAV_ITEMS = [
+  { href: "/dashboard/Scheduled", icon: Clock, label: "Scheduled", count: null },
+  { href: "/dashboard/sent", icon: Send, label: "Sent", count: null },
+  { href: "/dashboard/draft", icon: FileEdit, label: "Drafts", count: null },
 ];
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
+  const { setIsComposeOpen } = useSidebar();
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
-  }, []);
+  const handleLogout = () => {
+    logout();
+  };
 
-  const getGlassButtonClass = (isActive: boolean) =>
-    cn(
-      "group relative isolate flex h-10 w-10 items-center justify-center",
-      "overflow-hidden rounded-full",
-      "transition-[transform,background-color,border-color,box-shadow] duration-300 ease-out",
-      "backdrop-blur-[22px] backdrop-saturate-[170%]",
-      "bg-white/[0.075]",
-      "border border-white/[0.38]",
-      "shadow-[0_4px_16px_rgba(72,76,125,0.08),inset_0_1px_0_rgba(255,255,255,0.45)]",
-      "before:pointer-events-none before:absolute before:inset-0 before:rounded-full",
-      "before:bg-gradient-to-b before:from-white/[0.20] before:to-transparent",
-      "before:opacity-70",
-      "after:pointer-events-none after:absolute after:inset-[1px] after:rounded-full",
-      "after:border after:border-white/[0.10]",
-      "dark:bg-white/[0.045]",
-      "dark:border-white/[0.14]",
-      "dark:shadow-[0_5px_18px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.12)]",
-      "dark:before:from-white/[0.10]",
-      "dark:after:border-white/[0.05]",
-      isActive && [
-        "bg-[#9A9FF2]/[0.13]",
-        "border-[#A7ABF5]/[0.42]",
-        "text-[#5D639C]",
-        "shadow-[0_5px_18px_rgba(103,108,188,0.10),inset_0_1px_0_rgba(255,255,255,0.52),inset_0_-1px_0_rgba(92,98,164,0.05)]",
-        "dark:bg-[#B7B0FF]/[0.10]",
-        "dark:border-[#C1BBFF]/[0.24]",
-        "dark:text-[#D8D3FF]",
-        "dark:shadow-[0_5px_18px_rgba(120,110,220,0.12),inset_0_1px_0_rgba(255,255,255,0.14)]",
-      ]
-    );
+  if (pathname === '/dashboard/compose') {
+    return null;
+  }
 
   return (
-    <aside className="relative flex h-full w-20 flex-col items-center py-8">
-      <div className="absolute top-8 flex flex-col items-center">
+    <aside className="flex h-full shrink-0 flex-col border-r border-stroke bg-white p-4 font-satoshi w-[260px] dark:border-stroke-dark dark:bg-gray-dark">
+      {/* Brand Logo */}
+      <div className="mb-6 px-2 mt-2">
+        <span className="font-mono text-4xl font-black tracking-widest text-dark dark:text-white">
+          ONB
+        </span>
       </div>
 
-      <nav className="my-auto flex flex-col items-center gap-4">
-        {NAV_LINKS.map((link) => {
-          const isActive = pathname === link.href;
-          const Icon = link.icon;
-
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              title={link.label}
-              className={getGlassButtonClass(isActive)}
-            >
-              <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="absolute bottom-8 flex flex-col items-center gap-4">
-        {mounted && (
-          <button
-            onClick={() => {
-              const newTheme = resolvedTheme === "light" ? "dark" : "light";
-              setTheme(newTheme);
-            }}
-            title="Toggle Theme"
-            aria-label="Toggle Theme"
-            className={getGlassButtonClass(false)}
-          >
-            {resolvedTheme === "light" ? (
-              <Moon className="h-5 w-5 text-gray-700 transition-transform duration-300 group-hover:-rotate-12" />
+      {/* User Profile */}
+      <div className="relative mb-6">
+        <div
+          onClick={() => setShowDropdown(!showDropdown)}
+          className="flex items-center justify-between rounded-xl bg-[#F5F7F9] p-2 dark:bg-dark-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-3 transition-colors"
+        >
+          <div className="flex items-center gap-3 overflow-hidden">
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt={user.name || "User"}
+                className="h-9 w-9 shrink-0 rounded-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             ) : (
-              <Sun className="h-5 w-5 text-amber-300 transition-transform duration-300 group-hover:rotate-45" />
+              <div className="h-9 w-9 shrink-0 rounded-full bg-gray-300 dark:bg-dark-3" />
             )}
-          </button>
+            <div className="flex flex-col overflow-hidden">
+              <span className="truncate text-sm font-semibold text-dark dark:text-white">
+                {user?.name}
+              </span>
+              <span className="truncate text-xs text-gray-500 dark:text-gray-400">
+                {user?.email}
+              </span>
+            </div>
+          </div>
+          <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 mr-1" />
+        </div>
+
+        {/* Dropdown */}
+        {showDropdown && (
+          <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-stroke bg-white p-1 shadow-lg dark:border-stroke-dark dark:bg-dark-2 z-50">
+            <Button
+              variant="unstyled"
+              size="none"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
+            </Button>
+          </div>
         )}
+      </div>
+
+      {/* Compose Button */}
+      <Button
+        variant="brand"
+        className="mb-8 w-full"
+        onClick={() => {
+          if (typeof window !== "undefined") {
+            window.location.href = "/dashboard/compose";
+          }
+        }}
+      >
+        Compose
+      </Button>
+
+      {/* Navigation */}
+      <div className="flex-1">
+        <div className="mb-3 px-2 text-xs font-semibold text-gray-400 tracking-wider">CORE</div>
+        <nav className="space-y-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href || (pathname === '/dashboard' && item.href === '/dashboard/Scheduled');
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-[#EEF5F0] text-dark font-semibold dark:bg-[#1E293B] dark:text-white"
+                    : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-dark-2"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      isActive ? "text-dark dark:text-white" : "text-gray-500"
+                    )}
+                  />
+                  <span>{item.label}</span>
+                </div>
+                {item.count != null && (
+                  <span className={cn(
+                    "text-xs",
+                    isActive ? "text-gray-600 font-semibold dark:text-gray-300" : "text-gray-400"
+                  )}>
+                    {item.count}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
     </aside>
   );

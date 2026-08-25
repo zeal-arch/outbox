@@ -2,81 +2,140 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { playfair } from "@/lib/fonts";
-import { apiUrl } from "@/lib/api";
+import { Eye, EyeOff } from "lucide-react";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
+import { supabase } from "@/lib/supabase";
+import Button from "@/components/ui/Button";
 
 export function LoginForm() {
+  const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleGoogleSignIn = () => {
-    if (!apiUrl) {
-      toast.error("Configuration error: API URL is not set.");
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      setGoogleLoading(false);
+      toast.error(err.message || "Failed to redirect to Google authentication.");
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
       return;
     }
 
-    setGoogleLoading(true);
+    // Email Format Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    
+    setEmailLoading(true);
     try {
-      window.location.href = `${apiUrl}/api/auth/google`;
-    } catch (err) {
-      setGoogleLoading(false);
-      toast.error("Failed to redirect to Google authentication.");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      router.push("/dashboard");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to sign in");
+    } finally {
+      setEmailLoading(false);
     }
   };
 
   return (
-    <div className="min-h-dvh flex bg-brand-cream lg:border-t lg:border-brand-lightGray/30 items-center justify-center font-sans">
-      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-1000 p-6 sm:p-0">
-        <div className="mb-12 text-center">
-          <h1
-            className={`text-5xl tracking-tight mb-4 text-brand-nearBlack ${playfair.className}`}
-          >
-            Welcome <span className="italic opacity-90">Back.</span>
-          </h1>
-          <p className="text-brand-warmGray text-sm md:text-base font-light tracking-wide">
-            Please sign in to access the portal.
-          </p>
-        </div>
+    <div className="min-h-dvh flex bg-white items-center justify-center font-sans">
+      <div className="w-full max-w-[440px] rounded-xl border border-gray-100 p-8 sm:p-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)]">
+        <h1 className="text-[32px] font-semibold text-center text-[#111111] mb-8">
+          Login
+        </h1>
 
-        <div className="w-full flex justify-center mt-8">
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={googleLoading}
-            aria-busy={googleLoading}
-            aria-label="Sign in with Google"
-            className="w-full bg-brand-softPeriwinkle text-white transition-all duration-500 px-12 py-4 rounded-full text-xs font-semibold uppercase tracking-[0.2em] relative overflow-hidden group/btn shadow-[0_4px_20px_rgba(142,148,242,0.3)] hover:shadow-[0_6px_25px_rgba(159,160,255,0.4)] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <span className="relative z-10 flex items-center justify-center gap-4">
-              <GoogleIcon />
-              {googleLoading ? "Signing in..." : "Sign in with Google"}
-            </span>
-            <div className="absolute inset-0 h-full w-0 bg-brand-wisteriaBlue transition-all duration-500 ease-out group-hover/btn:w-full z-0"></div>
-          </button>
-        </div>
-        
-        <div className="flex justify-center mt-8">
-          <Link
+        <Button
+          variant="unstyled" size="none"
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading || emailLoading}
+          aria-busy={googleLoading}
+          aria-label="Login with Google"
+          className="w-full flex items-center justify-center gap-3 bg-[#E9F6ED] hover:bg-[#dcf0e2] text-[#111111] transition-colors duration-200 px-4 py-3.5 rounded-lg font-medium text-[15px] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <GoogleIcon className="w-5 h-5" />
+          {googleLoading ? "Signing in..." : "Login with Google"}
+        </Button>
+
+        <div className="flex items-center my-7 gap-4">
+          <div className="h-[1px] bg-gray-100 flex-1"></div>
+          <Link 
             href="/auth/signup"
-            className="text-[12px] uppercase tracking-wider text-brand-lavenderGrey hover:text-brand-softPeriwinkle transition-colors focus-visible:outline-brand-softPeriwinkle"
+            className="text-[#A1A1A1] hover:text-[#555] transition-colors text-[13px] font-medium tracking-wide"
           >
-            Don&apos;t have an account? Sign Up
+            or sign up through email
           </Link>
+          <div className="h-[1px] bg-gray-100 flex-1"></div>
         </div>
 
-        {/* Development Only Bypasser */}
-        {process.env.NODE_ENV === "development" && (
-          <div className="flex justify-center mt-6">
-            <Link
-              href="/dashboard"
-              className="text-[10px] uppercase tracking-wider text-muted-foreground/50 hover:text-primary transition-colors border-b border-transparent hover:border-primary pb-0.5"
-            >
-              Skip to Dashboard (Dev Mode)
-            </Link>
+        <form onSubmit={handleEmailAuth} className="space-y-4">
+          <div>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@gmail.com" 
+              required
+              className="w-full bg-[#F5F5F5] text-gray-900 text-[15px] px-4 py-3.5 rounded-lg outline-none focus:ring-1 focus:ring-gray-300 transition-all placeholder:text-[#A1A1A1]"
+            />
           </div>
-        )}
+          <div className="relative">
+            <input 
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password" 
+              required
+              className="w-full bg-[#F5F5F5] text-gray-900 text-[15px] px-4 py-3.5 pr-12 rounded-lg outline-none focus:ring-1 focus:ring-gray-300 transition-all placeholder:text-[#A1A1A1]"
+            />
+            <Button
+              variant="unstyled" size="none"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </Button>
+          </div>
+
+          
+          <Button
+            variant="creative-liquid"
+            type="submit"
+            disabled={emailLoading || googleLoading}
+            className="w-full mt-2 text-[15px] rounded-lg"
+          >
+            {emailLoading ? "Please wait..." : "Login"}
+          </Button>
+        </form>
       </div>
     </div>
   );
 }
+
+

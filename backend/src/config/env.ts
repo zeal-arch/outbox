@@ -19,6 +19,11 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CALLBACK_URL: z.string().url().optional(),
+  SUPABASE_S3_ENDPOINT: z.string().url(),
+  SUPABASE_S3_REGION: z.string().default("ap-northeast-1"),
+  SUPABASE_S3_ACCESS_KEY: z.string().min(1),
+  SUPABASE_S3_SECRET_KEY: z.string().min(1),
+  SUPABASE_S3_BUCKET: z.string().default("vscode"),
   LOG_LEVEL: z.string().default("info")
 });
 
@@ -45,6 +50,13 @@ export const env = {
     clientId: parsed.GOOGLE_CLIENT_ID,
     clientSecret: parsed.GOOGLE_CLIENT_SECRET,
     callbackUrl: parsed.GOOGLE_CALLBACK_URL
+  },
+  s3: {
+    endpoint: parsed.SUPABASE_S3_ENDPOINT,
+    region: parsed.SUPABASE_S3_REGION,
+    accessKey: parsed.SUPABASE_S3_ACCESS_KEY,
+    secretKey: parsed.SUPABASE_S3_SECRET_KEY,
+    bucket: parsed.SUPABASE_S3_BUCKET
   },
   logLevel: parsed.LOG_LEVEL
 };

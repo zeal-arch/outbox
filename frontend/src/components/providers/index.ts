@@ -1,1 +1,1 @@
-export { default as AppProviders } from "./AppProviders";
+export { useAuth } from "./AuthProvider";

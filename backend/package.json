@@ -7,18 +7,21 @@
     "dev": "tsx watch src/server.ts",
     "worker": "tsx watch src/workers/email.worker.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start:api": "node dist/server.js",
     "start:worker": "node dist/workers/email.worker.js",
+    "start": "concurrently \"npm run start:api\" \"npm run start:worker\"",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@bull-board/api": "^6.7.10",
-    "@bull-board/express": "^6.7.10",
+    "@aws-sdk/client-s3": "^3.1117.0",
+    "@supabase/supabase-js": "^2.112.4",
     "bullmq": "^5.34.2",
+    "concurrently": "^10.0.5",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ioredis": "^5.4.2",
+    "multer": "^2.2.0",
     "nodemailer": "^6.9.16",
     "pg": "^8.13.1",
     "zod": "^3.24.1"
@@ -26,6 +29,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/multer": "^2.2.0",
     "@types/node": "^22.10.2",
     "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.10",
