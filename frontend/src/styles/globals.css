@@ -1,0 +1,304 @@
+@import "tailwindcss";
+@import "./satoshi.css";
+@import "./layout-utilities.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* --- Fonts --- */
+  --font-satoshi: "Satoshi", sans-serif;
+
+  /* --- Breakpoints --- */
+  --breakpoint-2xsm: 375px;
+  --breakpoint-xsm: 425px;
+  --breakpoint-3xl: 2000px;
+
+  /* --- Animations --- */
+  --animate-scroll-left: scroll-left 30s linear infinite;
+
+  /* --- Apple iOS Human Interface Guidelines Palette --- */
+
+  /* iOS Light Colors */
+  --color-ios-light-blue: #007AFF;
+  --color-ios-light-green: #34C759;
+  --color-ios-light-indigo: #5856D6;
+  --color-ios-light-orange: #FF9500;
+  --color-ios-light-pink: #FF2D55;
+  --color-ios-light-purple: #AF52DE;
+  --color-ios-light-red: #FF3B30;
+  --color-ios-light-teal: #5AC8FA;
+  --color-ios-light-yellow: #FFCC00;
+
+  --color-ios-light-gray-1: #8E8E93;
+  --color-ios-light-gray-2: #AEAEB2;
+  --color-ios-light-gray-3: #C7C7CC;
+  --color-ios-light-gray-4: #D1D1D6;
+  --color-ios-light-gray-5: #E5E5EA;
+  --color-ios-light-gray-6: #F2F2F7;
+
+  /* iOS Dark Colors */
+  --color-ios-dark-blue: #0A84FF;
+  --color-ios-dark-green: #30D158;
+  --color-ios-dark-indigo: #5E5CE6;
+  --color-ios-dark-orange: #FF9F0A;
+  --color-ios-dark-pink: #FF375F;
+  --color-ios-dark-purple: #BF5AF2;
+  --color-ios-dark-red: #FF453A;
+  --color-ios-dark-teal: #64D2FF;
+  --color-ios-dark-yellow: #FFD60A;
+
+  --color-ios-dark-gray-1: #8E8E93;
+  --color-ios-dark-gray-2: #636366;
+  --color-ios-dark-gray-3: #48484A;
+  --color-ios-dark-gray-4: #3A3A3C;
+  --color-ios-dark-gray-5: #2C2C2E;
+  --color-ios-dark-gray-6: #1C1C1E;
+
+  /* Admin palette so utilities like bg-gray-2, text-dark-5, border-stroke work */
+  --color-primary: #8E94F2;
+  --color-brand-lavenderGrey: #8895B3;
+  --color-brand-softPeriwinkle: #8E94F2;
+  --color-brand-darksoftPeriwinkle: #595c96;
+  --color-brand-wisteriaBlue: #9FA0FF;
+  --color-brand-mauve: #BBADFF;
+  --color-brand-darkmauve: #846df7;
+  --color-brand-cream: #FAF9F7;
+  --color-brand-nearBlack: #1A1A1A;
+  --color-brand-warmGray: #6B6B6B;
+  --color-brand-lightGray: #E8E8E8;
+  --color-brand-deepPurple: #403165;
+  --color-brand-peach: #f8efe9;
+  --color-brand-amethyst: #7c5cbf;
+  --color-brand-popupBg: #EDEDED;
+  --color-brand-blue: #007AFF;
+  /* Soft Periwinkle - matches --admin-primary in globals.css */
+  --color-stroke: var(--color-ios-light-gray-4);
+  --color-stroke-dark: var(--color-ios-dark-gray-3);
+
+  --color-dark: #111928;
+  --color-dark-2: var(--color-ios-dark-gray-6);
+  --color-dark-3: var(--color-ios-dark-gray-5);
+  --color-dark-4: var(--color-ios-dark-gray-4);
+  --color-dark-5: var(--color-ios-dark-gray-3);
+  --color-dark-6: var(--color-ios-dark-gray-2);
+  --color-dark-7: var(--color-ios-dark-gray-1);
+
+  /* System Gray 1 */
+  --color-dark-8: var(--color-ios-dark-gray-1);
+
+  --color-gray: var(--color-ios-light-gray-1);
+
+  /* #1C1C1E — elevated above body #2C2C2E per Apple iOS dark layering */
+  --color-gray-dark: var(--color-ios-dark-gray-6);
+
+  --color-gray-1: #FFFFFF;
+  --color-gray-2: var(--color-ios-light-gray-6);
+  --color-gray-3: var(--color-ios-light-gray-5);
+  --color-gray-4: var(--color-ios-light-gray-4);
+  --color-gray-5: var(--color-ios-light-gray-3);
+  --color-gray-6: var(--color-ios-light-gray-2);
+  --color-gray-7: var(--color-ios-light-gray-1);
+
+  --color-green: var(--color-ios-light-green);
+  --color-green-dark: var(--color-ios-dark-green);
+  --color-red: var(--color-ios-light-red);
+  --color-red-dark: var(--color-ios-dark-red);
+
+  /* Admin spacing scale for h-7.5, w-11.5, etc. */
+  --spacing-4_5: 1.125rem;
+  --spacing-5_5: 1.375rem;
+  --spacing-6_5: 1.625rem;
+  --spacing-7_5: 1.875rem;
+  --spacing-8_5: 2.125rem;
+  --spacing-9_5: 2.375rem;
+  --spacing-10_5: 2.625rem;
+  --spacing-11_5: 2.875rem;
+  --spacing-12_5: 3.125rem;
+  --spacing-21_5: 5.375rem;
+
+  /* Admin shadow tokens */
+  --shadow-default: 0px 4px 7px 0px rgba(0, 0, 0, 0.14);
+  --shadow-error: 0px 12px 34px 0px rgba(13, 10, 44, 0.05);
+  --shadow-card: 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+  --shadow-card-2: 0px 8px 13px -3px rgba(0, 0, 0, 0.07);
+  --shadow-datepicker: -5px 0 0 #1f2a37, 5px 0 0 #1f2a37;
+  --shadow-1: 0px 1px 2px 0px rgba(84, 87, 118, 0.12);
+  --shadow-2: 0px 2px 3px 0px rgba(84, 87, 118, 0.15);
+  --shadow-3:
+    0px 8px 8.466px 0px rgba(113, 116, 152, 0.05),
+    0px 8px 16.224px 0px rgba(113, 116, 152, 0.07),
+    0px 18px 31px 0px rgba(113, 116, 152, 0.1);
+
+  --drop-shadow-card: 0px 8px 13px rgba(0, 0, 0, 0.07);
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-33.333%);
+    }
+  }
+}
+
+/* Shadcn UI Variables */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 47.4% 11.2%);
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 47.4% 11.2%);
+  --primary: hsl(236 78% 75%);
+  /* #8E94F2 */
+  --primary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+  --destructive: hsl(0 100% 50%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --ring: hsl(236 78% 75%);
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  /* #2C2C2E */
+  --foreground: oklch(0.985 0 0);
+  --muted: hsl(223 47% 11%);
+  --muted-foreground: hsl(215.4 16.3% 56.9%);
+  --popover: hsl(224 71% 4%);
+  --popover-foreground: hsl(215 20.2% 65.1%);
+  --border: hsl(216 34% 17%);
+  --input: hsl(216 34% 17%);
+  --card: hsl(224 71% 4%);
+  --card-foreground: hsl(213 31% 91%);
+  --primary: hsl(236 78% 75%);
+  /* #8E94F2 */
+  --primary-foreground: hsl(222.2 47.4% 1.2%);
+  --secondary: hsl(222.2 47.4% 11.2%);
+  --secondary-foreground: hsl(210 40% 98%);
+  --accent: hsl(216 34% 17%);
+  --accent-foreground: hsl(210 40% 98%);
+  --destructive: hsl(0 63% 31%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --ring: hsl(236 78% 75%);
+}
+
+@utility text-dark-5 {
+  color: #6B7280;
+}
+
+@utility text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+@layer base {
+  .admin-font-scale {
+    font-size: clamp(0.9rem, 0.82rem + 0.4vw, 1rem);
+    line-height: 1.55;
+  }
+
+  @media (min-width: 1024px) {
+    .admin-font-scale {
+      font-size: clamp(0.95rem, 0.88rem + 0.25vw, 1.05rem);
+    }
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+body:has([data-admin-layout]) {
+  background-color: #E5E7EB;
+  font-family: var(--font-satoshi);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dark body:has([data-admin-layout]),
+body:has([data-admin-layout]):is(.dark *) {
+  background-color: #2C2C2E;
+}
+
+html:has([data-admin-layout]) {
+  height: 100vh;
+  overflow: hidden;
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    scrollbar-gutter: stable;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .custom-scrollbar {
+    @apply overflow-auto;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply relative flex-1 rounded-full bg-neutral-200/40;
+  }
+}
