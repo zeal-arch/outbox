@@ -22,6 +22,7 @@ interface EmailDetail {
   scheduledTime?: string;
   status: string;
   created_at: string;
+  is_starred?: boolean;
   attachments?: Attachment[];
 }
 
@@ -76,6 +77,28 @@ export default function EmailDetailPage() {
   const isImage = (type: string) => type.startsWith('image/');
   const displayTime = email.sentTime || email.scheduledTime || email.created_at;
 
+  const toggleStar = async () => {
+    if (!token || !email) return;
+
+    const newStarred = !email.is_starred;
+    setEmail({ ...email, is_starred: newStarred });
+
+    try {
+      await fetch(`${apiUrl}/api/emails/${email.id}/star`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_starred: newStarred })
+      });
+    } catch (err) {
+      console.error("Failed to star:", err);
+      // Revert on error
+      setEmail({ ...email, is_starred: !newStarred });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-gray-dark">
       {/* Top Bar */}
@@ -92,8 +115,11 @@ export default function EmailDetailPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
-            <Star className="w-5 h-5" />
+          <button 
+            onClick={toggleStar}
+            className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 transition-colors ${email.is_starred ? 'text-amber-400 hover:text-amber-500' : 'text-gray-400 hover:text-gray-500'}`}
+          >
+            <Star className="w-5 h-5" fill={email.is_starred ? "currentColor" : "none"} />
           </button>
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
             <Archive className="w-5 h-5" />

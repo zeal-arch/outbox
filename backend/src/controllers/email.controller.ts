@@ -69,7 +69,7 @@ export async function listScheduledEmails(req: Request, res: Response) {
   const user = (req as any).user;
   try {
     const result = await db.query(
-      "SELECT id, recipient_email as email, subject, scheduled_at as \"scheduledTime\", status FROM email_jobs WHERE sender_id = $1 AND status = 'scheduled' ORDER BY scheduled_at ASC",
+      "SELECT id, recipient_email as email, subject, scheduled_at as \"scheduledTime\", status, is_starred FROM email_jobs WHERE sender_id = $1 AND status = 'scheduled' ORDER BY scheduled_at ASC",
       [user.id]
     );
     res.json({ data: result.rows });
@@ -83,7 +83,7 @@ export async function listSentEmails(req: Request, res: Response) {
   const user = (req as any).user;
   try {
     const result = await db.query(
-      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", status FROM email_jobs WHERE sender_id = $1 AND status IN ('sent', 'failed') ORDER BY sent_at DESC, updated_at DESC",
+      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", status, is_starred FROM email_jobs WHERE sender_id = $1 AND status IN ('sent', 'failed') ORDER BY sent_at DESC, updated_at DESC",
       [user.id]
     );
     res.json({ data: result.rows });
@@ -98,7 +98,7 @@ export async function getEmailById(req: Request, res: Response) {
   const { id } = req.params;
   try {
     const result = await db.query(
-      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", scheduled_at as \"scheduledTime\", status, created_at FROM email_jobs WHERE id = $1 AND sender_id = $2",
+      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", scheduled_at as \"scheduledTime\", status, is_starred, created_at FROM email_jobs WHERE id = $1 AND sender_id = $2",
       [id, user.id]
     );
     
@@ -204,5 +204,28 @@ export async function deleteDraft(req: Request, res: Response) {
   } catch (err) {
     console.error("[EmailController] Failed to delete draft:", err);
     res.status(500).json({ error: "Failed to delete draft" });
+  }
+}
+
+export async function toggleStar(req: Request, res: Response) {
+  const user = (req as any).user;
+  const { id } = req.params;
+  const { is_starred } = req.body;
+  
+  try {
+    const result = await db.query(
+      "UPDATE email_jobs SET is_starred = $1, updated_at = NOW() WHERE id = $2 AND sender_id = $3 RETURNING is_starred",
+      [is_starred, id, user.id]
+    );
+    
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Email not found" });
+      return;
+    }
+    
+    res.json({ success: true, is_starred: result.rows[0].is_starred });
+  } catch (err) {
+    console.error("[EmailController] Failed to toggle star:", err);
+    res.status(500).json({ error: "Failed to toggle star" });
   }
 }
