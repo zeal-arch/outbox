@@ -1,89 +1,104 @@
-# Outbox - Backend Services
+# Outbox Backend Engine
 
-This is the backend for the Outbox scheduling engine. It handles API requests, queues background jobs, and enforces rate-limiting constraints using a combination of PostgreSQL and Redis.
+A high-throughput, fault-tolerant email scheduling API powered by BullMQ, Redis, and PostgreSQL.
 
-## 🛠 Tech Stack
-- **Node.js + Express**: REST API framework.
-- **TypeScript**: Strictly typed backend code.
-- **PostgreSQL**: Primary data store for users, scheduled jobs, sent logs, and idempotency states.
-- **Redis & BullMQ**: Background job queue processing with advanced delay features.
-- **Nodemailer**: SMTP client connecting to Ethereal Email for testing.
-- **Supabase S3**: For parsing and storing multipart form attachments.
+## Overview
 
-## 🚀 Key Features
-1. **Zero-Cron Scheduling**: Uses BullMQ delayed jobs to schedule tasks up to months in advance.
-2. **Robust Rate Limiting**: Uses a Redis sliding-window algorithm to enforce `MAX_EMAILS_PER_HOUR_PER_SENDER`. If the limit is hit, jobs are delayed to the next hour (`moveToDelayed`) instead of being dropped.
-3. **Provider Throttling**: The background worker explicitly awaits a configurable delay (`MIN_SEND_DELAY_MS`) between emails to mimic real SMTP limits.
-4. **Fault Tolerant**: Maintains an `idempotency_key` and relies on Postgres for state tracking. If a worker crashes mid-send, it won't double-send the email on reboot.
+The Outbox Backend is an Express.js REST API that acts as the core scheduling and dispatch engine. Built strictly without OS-level cron jobs, it leverages **BullMQ** and **Redis** for stateful, delayed job execution, and relies on **PostgreSQL** for strict idempotency guarantees.
 
-## ⚙️ Setup & Local Development
+This architecture ensures that the system can handle thousands of concurrent email scheduling requests, gracefully manage provider rate-limiting, and survive complete server crashes without double-sending or losing emails.
 
-### Prerequisites
-- **Node.js** (v18.x or higher)
-- **PostgreSQL** instance
-- **Redis** instance (v6+)
-- **Supabase Account** (for Auth & S3 storage)
+---
 
-### 1. Setting Up Ethereal Email (Fake SMTP)
-Ethereal Email is a safe fake SMTP service where all sent emails are captured in a virtual inbox without hitting real recipients.
-1. Go to [https://ethereal.email/create](https://ethereal.email/create).
-2. Click **Create Ethereal Account**.
-3. Note your generated **Account Email** (User) and **Password**.
+## System Architecture
 
-### 2. Environment Variables Configuration
-Create a `.env` file in the `backend` directory:
+1. **API Layer (Express)**: Accepts scheduling payloads, uploads multipart attachments directly to Supabase S3, and persists the initial `email_jobs` state in PostgreSQL.
+2. **Scheduling Engine (BullMQ)**: Uses `addBulk` to distribute delayed jobs into Redis. Redis Sorted Sets (ZSET) are used to promote jobs from `delayed` to `waiting` precisely when their execution time hits.
+3. **Sliding-Window Rate Limiter**: Uses atomic Redis counters (`INCR` + `EXPIRE`) to track hourly sending quotas. Overflowing jobs are intelligently delayed (`moveToDelayed`) rather than dropped.
+4. **Worker Pool (BullMQ Workers)**: Pulls ready jobs, verifies idempotency against PostgreSQL, enforces a strict `MIN_SEND_DELAY_MS` to mimic provider throttling, streams S3 attachments, and dispatches via Ethereal SMTP.
+
+---
+
+## Technology Stack
+
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Framework** | Express.js / Node.js | REST API & Worker processes |
+| **Language** | TypeScript | Strict static typing and developer experience |
+| **Database** | PostgreSQL | Persistence, relationships, and idempotency checks |
+| **Queue** | BullMQ & Redis | Delayed job scheduling and rate-limiting counters |
+| **Storage** | Supabase S3 | Multipart form parsing and attachment streaming |
+| **Email** | Nodemailer / Ethereal | Fake SMTP delivery target |
+
+---
+
+## Local Development Setup
+
+### 1. Prerequisites
+- **Node.js** (v18.x or newer)
+- **PostgreSQL** Database
+- **Redis** Cluster (v6.x or newer)
+- **Supabase Account** (For S3 buckets)
+
+### 2. Configure Environment Variables
+Create a `.env` file at the root of the `backend` directory. 
+*(Note: `GOOGLE_CLIENT_ID` is omitted as authentication is securely handled client-side via Supabase).*
+
 ```env
-# Server Config
+# Server & Environment
 PORT=4000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 
-# Database & Cache
-DATABASE_URL=postgresql://postgres:password@localhost:5432/outbox_db
+# Database & Cache Connections
+DATABASE_URL=postgresql://user:pass@localhost:5432/outbox
 REDIS_URL=redis://localhost:6379
 
-# Concurrency & Rate Limiting
+# Concurrency & Tuning
 WORKER_CONCURRENCY=5
 MIN_SEND_DELAY_MS=2000
 MAX_EMAILS_PER_HOUR_PER_SENDER=200
 MAX_EMAIL_RETRIES=3
 EMAIL_SEND_TIMEOUT_MS=30000
 
-# Ethereal Email SMTP Credentials
+# Ethereal Email (Fake SMTP)
 ETHEREAL_HOST=smtp.ethereal.email
 ETHEREAL_PORT=587
-ETHEREAL_USER=your_ethereal_user@ethereal.email
+ETHEREAL_USER=your_ethereal_user
 ETHEREAL_PASSWORD=your_ethereal_password
 
-# Supabase Auth & S3 Storage
+# Supabase Auth & S3
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_S3_ENDPOINT=https://your-project.storage.supabase.co/storage/v1/s3
+SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_S3_ENDPOINT=https://your-project.supabase.co/storage/v1/s3
 SUPABASE_S3_REGION=ap-northeast-1
-SUPABASE_S3_ACCESS_KEY=your_s3_access_key
-SUPABASE_S3_SECRET_KEY=your_s3_secret_key
+SUPABASE_S3_ACCESS_KEY=your_access_key
+SUPABASE_S3_SECRET_KEY=your_secret_key
 SUPABASE_S3_BUCKET=attachments
 ```
 
-### 3. Running the Database Migrations
-Run the initial SQL schema migrations to create the required tables:
+### 3. Initialize Database
+Install dependencies and run the provided SQL migrations to create the required tables:
 ```bash
 npm install
 npm run migrate
 ```
 
-### 4. Running the Backend & BullMQ Worker
-You can start both the Express API and the BullMQ worker concurrently:
+### 4. Start the Services
+The architecture supports running the API and the Worker either combined or as separate scaled processes.
+
+**Run Concurrently (Development):**
 ```bash
 npm run dev
 ```
 
-Or run them in separate terminal tabs:
-**Tab 1 (Express API):**
+**Run Separately (Production/Scale Testing):**
 ```bash
-npm run dev:api
+npm run dev:api     # Tab 1: Starts the Express API
+npm run dev:worker  # Tab 2: Starts the BullMQ consumers
 ```
-**Tab 2 (BullMQ Worker):**
-```bash
-npm run dev:worker
-```
+
+---
+
+## Security & Auth
+All protected routes require a Bearer token. The API verifies the JWT against your Supabase project instance using `supabase.auth.getUser()`, ensuring complete stateless security without local session management.
