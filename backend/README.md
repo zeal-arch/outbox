@@ -64,8 +64,8 @@ EMAIL_SEND_TIMEOUT_MS=30000
 # Ethereal Email (Fake SMTP)
 ETHEREAL_HOST=smtp.ethereal.email
 ETHEREAL_PORT=587
-ETHEREAL_USER=your_ethereal_user
-ETHEREAL_PASSWORD=your_ethereal_password
+ETHEREAL_USER=llbcp757uvpk4j3b@ethereal.email
+ETHEREAL_PASSWORD=Nn65KjvNtz4W9TvJ2k
 
 # Supabase Auth & S3
 SUPABASE_URL=https://your-project.supabase.co
