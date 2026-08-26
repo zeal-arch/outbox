@@ -102,3 +102,19 @@ npm run dev:worker  # Tab 2: Starts the BullMQ consumers
 
 ## Security & Auth
 All protected routes require a Bearer token. The API verifies the JWT against your Supabase project instance using `supabase.auth.getUser()`, ensuring complete stateless security without local session management.
+
+---
+
+## Testing Server Crash Resilience (Restart Scenario)
+
+Because Outbox uses a stateful message broker (Redis/BullMQ) backed by PostgreSQL, no emails are lost if the Node.js server crashes or shuts down while jobs are pending. 
+
+> [!NOTE]
+> **Queue Isolation**: To prevent your local development workers from stealing jobs meant for your production servers, local environments (`NODE_ENV=development`) automatically use a separate isolated Redis queue (`email-send-dev`) instead of the production queue (`email-send`).
+
+**How to demonstrate crash resilience locally:**
+1. Stop your local worker by closing any terminals running `npm run worker`. Keep `npm run dev` running so you can access the API.
+2. From the frontend, compose a new email and schedule it for **1-2 minutes in the future**, then click Send.
+3. Wait for the scheduled time to pass. Since the worker is "crashed" (stopped), the email will not send and remains safely stored in Redis.
+4. Run `npm run worker` to bring the worker back online. 
+5. The worker will instantly recognize the delayed job whose timestamp has passed, process it, and send the email immediately.
