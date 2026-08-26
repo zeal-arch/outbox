@@ -30,3 +30,5 @@ out
 # env
 .env
 .env*.local
+
+.vercel
