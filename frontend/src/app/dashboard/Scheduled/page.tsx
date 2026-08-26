@@ -72,33 +72,32 @@ function ScheduledContent() {
             </Button>
           </div>
         ) : (
-          <div className="flex flex-col w-full border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 dark:bg-dark-2 text-gray-500 dark:text-gray-400">
-                <tr>
-                  <th className="px-6 py-3 font-medium">To</th>
-                  <th className="px-6 py-3 font-medium">Subject</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 font-medium">Scheduled For</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                {displayEmails.map((email) => (
-                  <tr key={email.id} className="hover:bg-gray-50 dark:hover:bg-dark-2 transition-colors">
-                    <td className="px-6 py-4 truncate max-w-[200px]">{email.email || "Multiple Recipients"}</td>
-                    <td className="px-6 py-4 truncate max-w-[300px]">{email.subject}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/30 text-xs font-medium">
-                        {email.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {new Date(email.scheduledTime).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex flex-col w-full">
+            {displayEmails.map((email) => (
+              <div 
+                key={email.id} 
+                className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-dark-2/50 transition-colors px-2"
+              >
+                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                  <div className="w-[200px] shrink-0 font-semibold text-dark dark:text-white truncate text-sm">
+                    To: {email.email || "Multiple Recipients"}
+                  </div>
+                  <div className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-500 dark:bg-orange-900/30 text-xs font-semibold">
+                    <Clock className="w-3.5 h-3.5" />
+                    {new Date(email.scheduledTime).toLocaleTimeString([], { weekday: 'short', hour: 'numeric', minute:'2-digit', second:'2-digit' })}
+                  </div>
+                  <div className="flex-1 truncate ml-2 text-sm">
+                    <span className="font-semibold text-dark dark:text-white">{email.subject}</span>
+                    <span className="text-gray-400 dark:text-gray-500 ml-2">- ...</span>
+                  </div>
+                </div>
+                <div className="shrink-0 ml-4 flex items-center">
+                  <Button variant="unstyled" size="none" className="p-2 text-gray-300 hover:text-gray-500 transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </main>
