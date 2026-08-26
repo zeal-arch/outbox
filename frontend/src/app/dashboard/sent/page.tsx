@@ -82,13 +82,13 @@ function SentContent() {
                   <div className="w-[200px] shrink-0 font-semibold text-dark dark:text-white truncate text-sm">
                     To: {email.email || "Multiple Recipients"}
                   </div>
-                  <div className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                    email.status === 'sent' 
-                      ? 'bg-orange-50 text-orange-500 dark:bg-orange-900/30' 
-                      : 'bg-red-50 text-red-500 dark:bg-red-900/30'
-                  }`}>
-                    <Clock className="w-3.5 h-3.5" />
-                    {new Date(email.sentTime).toLocaleTimeString([], { weekday: 'short', hour: 'numeric', minute:'2-digit', second:'2-digit' })}
+                  <div className="shrink-0 flex items-center gap-3">
+                    <div className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 text-xs font-semibold capitalize">
+                      {email.status}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(email.sentTime).toLocaleTimeString([], { hour: 'numeric', minute:'2-digit' })}
+                    </div>
                   </div>
                   <div className="flex-1 truncate ml-2 text-sm">
                     <span className="font-semibold text-dark dark:text-white">{email.subject}</span>
