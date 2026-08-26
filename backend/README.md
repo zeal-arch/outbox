@@ -109,12 +109,14 @@ All protected routes require a Bearer token. The API verifies the JWT against yo
 
 Because Outbox uses a stateful message broker (Redis/BullMQ) backed by PostgreSQL, no emails are lost if the Node.js server crashes or shuts down while jobs are pending. 
 
-> [!NOTE]
-> **Queue Isolation**: To prevent your local development workers from stealing jobs meant for your production servers, local environments (`NODE_ENV=development`) automatically use a separate isolated Redis queue (`email-send-dev`) instead of the production queue (`email-send`).
+**Environment Isolation**
+The application implements automatic queue isolation to ensure data integrity across environments. When `NODE_ENV` is set to `development`, the system provisions a dedicated Redis queue (`email-send-dev`) to prevent local worker processes from consuming payloads intended for the production queue (`email-send`).
 
-**How to demonstrate crash resilience locally:**
-1. Stop your local worker by closing any terminals running `npm run worker`. Keep `npm run dev` running so you can access the API.
-2. From the frontend, compose a new email and schedule it for **1-2 minutes in the future**, then click Send.
-3. Wait for the scheduled time to pass. Since the worker is "crashed" (stopped), the email will not send and remains safely stored in Redis.
-4. Run `npm run worker` to bring the worker back online. 
-5. The worker will instantly recognize the delayed job whose timestamp has passed, process it, and send the email immediately.
+**Fault Tolerance & Recovery Verification**
+The following procedure verifies the system's ability to recover from unexpected process terminations without data loss:
+
+1. Terminate the active worker process (e.g., exit the terminal running `npm run worker`) while maintaining the core API service.
+2. Dispatch a scheduled email payload via the client interface, configuring the execution time for 1-2 minutes in the future.
+3. Allow the scheduled execution window to elapse. The payload will remain durably persisted within the Redis queue.
+4. Reinitialize the worker process by executing `npm run worker`.
+5. The worker will automatically identify and process the delayed payload upon startup, demonstrating seamless recovery and execution.
