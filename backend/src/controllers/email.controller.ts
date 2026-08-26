@@ -98,7 +98,7 @@ export async function getEmailById(req: Request, res: Response) {
   const { id } = req.params;
   try {
     const result = await db.query(
-      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", scheduled_at as \"scheduledTime\", status, is_starred, created_at FROM email_jobs WHERE id = $1 AND sender_id = $2",
+      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", scheduled_at as \"scheduledTime\", status, is_starred, preview_url, created_at FROM email_jobs WHERE id = $1 AND sender_id = $2",
       [id, user.id]
     );
     

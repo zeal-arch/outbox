@@ -1,4 +1,5 @@
 import { Worker, DelayedError } from "bullmq";
+import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 import { redis } from "../config/redis.js";
 import { db } from "../config/database.js";
@@ -100,12 +101,16 @@ const worker = new Worker<EmailQueuePayload>(
         attachments.length > 0 ? attachments : undefined
       );
       
+      const previewUrl = nodemailer.getTestMessageUrl(info) || null;
       console.log(`[Worker] Email sent successfully for job ${emailJobId}. MessageId: ${info.messageId}`);
+      if (previewUrl) {
+        console.log(`[Worker] Preview URL: ${previewUrl}`);
+      }
 
       // 6. Update Postgres to sent
       await db.query(
-        "UPDATE email_jobs SET status = 'sent', sent_at = NOW(), updated_at = NOW() WHERE id = $1",
-        [emailJobId]
+        "UPDATE email_jobs SET status = 'sent', sent_at = NOW(), updated_at = NOW(), preview_url = $2 WHERE id = $1",
+        [emailJobId, previewUrl]
       );
     } catch (sendErr: any) {
       console.error(`[Worker] Failed to send email for job ${emailJobId}:`, sendErr);

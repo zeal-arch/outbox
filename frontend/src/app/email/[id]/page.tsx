@@ -23,6 +23,7 @@ interface EmailDetail {
   status: string;
   created_at: string;
   is_starred?: boolean;
+  preview_url?: string;
   attachments?: Attachment[];
 }
 
@@ -153,6 +154,21 @@ export default function EmailDetailPage() {
               {new Date(displayTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
             </div>
           </div>
+
+          {/* Preview Action */}
+          {email.preview_url && (
+            <div className="mb-8">
+              <a 
+                href={email.preview_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-medium text-sm rounded-lg transition-colors border border-indigo-200 dark:border-indigo-800"
+              >
+                <File className="w-4 h-4" />
+                View Ethereal Email Inbox
+              </a>
+            </div>
+          )}
 
           {/* Body */}
           <div 
