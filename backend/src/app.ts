@@ -1,7 +1,6 @@
 import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
-import { authRouter } from "./routes/auth.routes.js";
 import { emailRouter } from "./routes/email.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { metricsRouter } from "./routes/metrics.routes.js";
@@ -22,7 +21,6 @@ export function createApp() {
   }));
   app.use(express.json({ limit: "2mb" }));
 
-  app.use("/api/auth", authRouter);
   app.use("/api/emails", emailRouter);
   app.use("/health", healthRouter);
   app.use("/metrics", metricsRouter);

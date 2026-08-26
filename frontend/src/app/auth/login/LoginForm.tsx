@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+
 import { Eye, EyeOff } from "lucide-react";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
 import { supabase } from "@/lib/supabase";
@@ -83,12 +83,9 @@ export function LoginForm() {
 
         <div className="flex items-center my-7 gap-4">
           <div className="h-[1px] bg-gray-100 flex-1"></div>
-          <Link 
-            href="/auth/signup"
-            className="text-[#A1A1A1] hover:text-[#555] transition-colors text-[13px] font-medium tracking-wide"
-          >
-            or sign up through email
-          </Link>
+          <span className="text-[#A1A1A1] text-[13px] font-medium tracking-wide">
+            or login through email
+          </span>
           <div className="h-[1px] bg-gray-100 flex-1"></div>
         </div>
 
