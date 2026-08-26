@@ -19,21 +19,27 @@ This is the user interface for the Outbox scheduling engine. It allows authentic
   - Date and time picker for future scheduling.
 - **Live State Feedback**: Displays correct pill badges for job states (Scheduled vs Sent vs Failed).
 
-## ⚙️ Running Locally
+## ⚙️ Setup & Local Development
 
-1. Ensure your backend is running on `http://localhost:4000`.
-2. Create a `.env.local` file:
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:4000
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-5. Open [http://localhost:3000](http://localhost:3000).
+### Prerequisites
+- **Node.js** (v18.x or higher)
+- **Supabase Account** (for Auth configuration)
+- The Backend server must be running on `http://localhost:4000`.
+
+### 1. Environment Variables Configuration
+Create a `.env.local` file in the `frontend` directory:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 2. Running the Development Server
+Install dependencies and start the Next.js development server:
+```bash
+npm install
+npm run dev
+```
+
+### 3. Open the Dashboard
+Navigate to [http://localhost:3000](http://localhost:3000) in your browser. You will be prompted to log in using Google OAuth before accessing the dashboard.
