@@ -1,44 +1,61 @@
 "use client";
 
-import { ArrowLeft, Star, Archive, Trash2, ChevronDown, Zap } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Star, Archive, Trash2, File, Download } from "lucide-react";
 import { useAuth } from "@/components/providers";
 import { apiUrl } from "@/lib/api";
-import Button from "@/components/ui/Button";
+
+interface Attachment {
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  url: string;
+}
+
+interface EmailDetail {
+  id: string;
+  email: string;
+  subject: string;
+  body: string;
+  sentTime?: string;
+  scheduledTime?: string;
+  status: string;
+  created_at: string;
+  attachments?: Attachment[];
+}
+
+function formatBytes(bytes: number) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
 
 export default function EmailDetailPage() {
-  const router = useRouter();
   const params = useParams();
+  const router = useRouter();
   const { token } = useAuth();
-  
-  const [email, setEmail] = useState<any>(null);
+  const [email, setEmail] = useState<EmailDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  const id = params.id as string;
 
   useEffect(() => {
-    const fetchEmail = async () => {
-      if (!token || !params?.id) return;
-      
-      try {
-        const res = await fetch(`${apiUrl}/api/emails/${params.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (!res.ok) throw new Error("Failed to load email details");
-        
-        const data = await res.json();
-        setEmail(data.data);
-      } catch (err) {
-        console.error(err);
-        setError("Could not load this email.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!token || !id) return;
     
-    fetchEmail();
-  }, [token, params?.id]);
+    setIsLoading(true);
+    fetch(`${apiUrl}/api/emails/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.data) setEmail(data.data);
+      })
+      .catch(err => console.error("Failed to fetch email:", err))
+      .finally(() => setIsLoading(false));
+  }, [id, token]);
 
   if (isLoading) {
     return (
@@ -48,91 +65,121 @@ export default function EmailDetailPage() {
     );
   }
 
-  if (error || !email) {
+  if (!email) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-white dark:bg-gray-dark">
-        <p className="text-gray-500 mb-4">{error || "Email not found"}</p>
-        <Button variant="unstyled" size="none" onClick={() => router.back()} className="text-primary hover:underline">
-          Go back to inbox
-        </Button>
+      <div className="flex h-full w-full items-center justify-center bg-white dark:bg-gray-dark">
+        <div className="text-gray-500">Email not found</div>
       </div>
     );
   }
 
-  // Format date safely
-  const formattedDate = new Date(email.sentTime || email.scheduledTime).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-  });
+  const isImage = (type: string) => type.startsWith('image/');
+  const displayTime = email.sentTime || email.scheduledTime || email.created_at;
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-gray-dark">
-      {/* Header */}
-      <header className="sticky top-0 z-10 flex min-w-0 shrink-0 items-center justify-between border-b border-stroke bg-white px-4 py-3 dark:border-stroke-dark dark:bg-gray-dark md:px-6 font-satoshi">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="unstyled"
-            size="none"
-            onClick={() => router.back()}
-            className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-full transition-colors dark:text-gray-400 dark:hover:bg-dark-3"
+      {/* Top Bar */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => router.back()} 
+            className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-500 transition-colors"
           >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-[17px] font-medium text-dark dark:text-white truncate">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-xl font-medium text-dark dark:text-white truncate max-w-3xl">
             {email.subject}
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="unstyled" size="none" className="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">
-            <Star className="h-4 w-4" />
-          </Button>
-          <Button variant="unstyled" size="none" className="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">
-            <Archive className="h-4 w-4" />
-          </Button>
-          <Button variant="unstyled" size="none" className="p-2 text-gray-400 hover:text-red-500 transition-colors dark:hover:text-red-400">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          <div className="ml-2 h-7 w-7 overflow-hidden rounded-full border border-stroke dark:border-stroke-dark">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-              alt="User Avatar"
-              className="h-full w-full object-cover bg-gray-100 dark:bg-dark-3" 
-            />
-          </div>
+          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
+            <Star className="w-5 h-5" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
+            <Archive className="w-5 h-5" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
+            <Trash2 className="w-5 h-5" />
+          </button>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-6 lg:px-12 font-satoshi custom-scrollbar">
-        {/* Sender Info */}
-        <div className="flex items-start justify-between mb-8">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#10C35B] text-white font-semibold shadow-sm uppercase">
-              {email.email ? email.email.charAt(0) : "A"}
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="font-semibold text-dark dark:text-white">
-                  {email.email}
-                </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  &lt;{email.email}&gt;
-                </span>
+      {/* Email Content */}
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="max-w-4xl mx-auto">
+          {/* Header Info */}
+          <div className="flex justify-between items-start mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold shadow-sm">
+                {email.email.charAt(0).toUpperCase()}
               </div>
-              <Button variant="unstyled" size="none" className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mt-0.5">
-                to me <ChevronDown className="h-3 w-3" />
-              </Button>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-dark dark:text-white">To:</span>
+                  <span className="text-gray-900 dark:text-gray-200 font-medium">{email.email}</span>
+                </div>
+                <div className="text-sm text-gray-500 mt-0.5">
+                  Status: <span className="capitalize text-primary font-medium">{email.status}</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-500">
+              {new Date(displayTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
             </div>
           </div>
-          <span className="text-sm text-gray-400 whitespace-nowrap">
-            {formattedDate}
-          </span>
-        </div>
 
-        {/* Email Body */}
-        <div className="text-[15px] leading-relaxed text-dark-2 dark:text-gray-300 space-y-6 max-w-4xl whitespace-pre-wrap">
-          {email.body}
+          {/* Body */}
+          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed text-[15px]">
+            {email.body}
+          </div>
+
+          {/* Attachments */}
+          {email.attachments && email.attachments.length > 0 && (
+            <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
+              <h3 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">
+                {email.attachments.length} Attachment{email.attachments.length > 1 ? 's' : ''}
+              </h3>
+              <div className="flex flex-wrap gap-4">
+                {email.attachments.map((att, i) => (
+                  <div key={i} className="flex flex-col group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-2 w-64 hover:border-primary/50 transition-colors">
+                    {isImage(att.fileType) ? (
+                      <div className="h-36 w-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                        {/* Use object-cover to show the image preview properly */}
+                        <img src={att.url} alt={att.fileName} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-36 w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400">
+                        <File className="w-12 h-12" />
+                      </div>
+                    )}
+                    
+                    <div className="p-3 bg-white dark:bg-gray-dark border-t border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-dark dark:text-white truncate">
+                        {att.fileName}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {formatBytes(att.fileSize)}
+                      </div>
+                    </div>
+                    
+                    {/* Hover Overlay for Download */}
+                    <a 
+                      href={att.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      <div className="bg-white/90 text-dark rounded-full p-3 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
+                        <Download className="w-5 h-5" />
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

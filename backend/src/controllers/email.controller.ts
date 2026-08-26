@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { EmailSchedulerService } from "../services/email-scheduler.service.js";
 import { db } from "../config/database.js";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { s3Client } from "../config/s3.js";
+import { env } from "../config/env.js";
 
 const scheduler = new EmailSchedulerService();
 
@@ -103,7 +107,35 @@ export async function getEmailById(req: Request, res: Response) {
       return;
     }
     
-    res.json({ data: result.rows[0] });
+    const emailData = result.rows[0];
+
+    const attachmentResult = await db.query(
+      "SELECT file_name, file_type, file_size, s3_key FROM email_attachments WHERE email_job_id = $1",
+      [id]
+    );
+
+    const attachments = [];
+    for (const att of attachmentResult.rows) {
+      let url = "";
+      if (att.s3_key) {
+        const command = new GetObjectCommand({
+          Bucket: env.s3.bucket,
+          Key: att.s3_key,
+        });
+        url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+      }
+
+      attachments.push({
+        fileName: att.file_name,
+        fileType: att.file_type,
+        fileSize: att.file_size,
+        url
+      });
+    }
+
+    emailData.attachments = attachments;
+
+    res.json({ data: emailData });
   } catch (err) {
     console.error("[EmailController] Failed to get email by id:", err);
     res.status(500).json({ error: "Failed to get email" });
