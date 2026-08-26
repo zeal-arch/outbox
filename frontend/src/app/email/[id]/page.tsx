@@ -60,7 +60,7 @@ export default function EmailDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-white dark:bg-gray-dark">
+      <div className="flex h-screen w-full items-center justify-center bg-white dark:bg-gray-dark">
         <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
@@ -68,7 +68,7 @@ export default function EmailDetailPage() {
 
   if (!email) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-white dark:bg-gray-dark">
+      <div className="flex h-screen w-full items-center justify-center bg-white dark:bg-gray-dark">
         <div className="text-gray-500">Email not found</div>
       </div>
     );
@@ -100,7 +100,7 @@ export default function EmailDetailPage() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-white dark:bg-gray-dark">
+    <div className="flex flex-col h-screen w-full bg-white dark:bg-gray-dark font-satoshi">
       {/* Top Bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-4">
@@ -155,9 +155,10 @@ export default function EmailDetailPage() {
           </div>
 
           {/* Body */}
-          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed text-[15px]">
-            {email.body}
-          </div>
+          <div 
+            className="text-gray-800 dark:text-gray-200 leading-relaxed text-[15px] prose dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: email.body }}
+          />
 
           {/* Attachments */}
           {email.attachments && email.attachments.length > 0 && (

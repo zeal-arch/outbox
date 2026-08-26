@@ -100,7 +100,7 @@ function ScheduledContent() {
           <div className="flex flex-col w-full">
             {displayEmails.map((email) => (
               <Link 
-                href={`/dashboard/email/${email.id}`}
+                href={`/email/${email.id}`}
                 key={email.id} 
                 className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-dark-2/50 transition-colors px-2 cursor-pointer"
               >
