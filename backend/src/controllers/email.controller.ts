@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { EmailSchedulerService } from "../services/email-scheduler.service.js";
 import { db } from "../config/database.js";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3Client } from "../config/s3.js";
 import { env } from "../config/env.js";
@@ -236,6 +236,12 @@ export async function deleteEmailById(req: Request, res: Response) {
   const { id } = req.params;
   
   try {
+    // Fetch attachment S3 keys before deleting the job
+    const attachmentResult = await db.query(
+      "SELECT s3_key FROM email_attachments WHERE email_job_id = $1",
+      [id]
+    );
+
     const result = await db.query(
       "DELETE FROM email_jobs WHERE id = $1 AND sender_id = $2 RETURNING id",
       [id, user.id]
@@ -244,6 +250,20 @@ export async function deleteEmailById(req: Request, res: Response) {
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Email not found or unauthorized" });
       return;
+    }
+
+    // Delete files from S3
+    for (const att of attachmentResult.rows) {
+      if (att.s3_key) {
+        try {
+          await s3Client.send(new DeleteObjectCommand({
+            Bucket: env.s3.bucket,
+            Key: att.s3_key
+          }));
+        } catch (s3Err) {
+          console.error(`[EmailController] Failed to delete S3 object ${att.s3_key}:`, s3Err);
+        }
+      }
     }
     
     res.json({ success: true });
