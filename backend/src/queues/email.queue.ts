@@ -1,7 +1,8 @@
 import { Queue } from "bullmq";
 import { redis } from "../config/redis.js";
+import { env } from "../config/env.js";
 
-export const EMAIL_QUEUE_NAME = "email-send";
+export const EMAIL_QUEUE_NAME = env.nodeEnv === 'production' ? "email-send" : "email-send-dev";
 
 export interface EmailQueuePayload {
   emailJobId: string;
