@@ -5,6 +5,7 @@ Welcome to **Outbox**, a production-ready, full-stack email scheduling and dispa
 ---
 
 ## Table of Contents
+
 1. [Architecture Overview](#architecture-overview)
    - [How Scheduling Works (Zero Cron)](#1-how-scheduling-works-zero-cron)
    - [Handling Persistence on Restart](#2-handling-persistence-on-restart)
@@ -111,6 +112,7 @@ To mimic real-world provider constraints and protect our sender reputation, we i
 Here is a high-level map of our frontend and backend folder structures:
 
 ### Frontend
+
 ```text
 frontend
 +-- src
@@ -143,6 +145,7 @@ frontend
 ```
 
 ### Backend
+
 ```text
 backend
 +-- src
@@ -186,40 +189,44 @@ backend
 ## Features Implemented
 
 ### Backend Features
-| Category | Implementation Details |
-| :--- | :--- |
-| **Scheduler Engine** | BullMQ + Redis delayed queue. Zero reliance on `cron` or `node-cron`. Supports multi-recipient campaigns. |
-| **Persistence** | PostgreSQL + Redis state machine. Survives process crashes and restarts without re-sending old emails. |
-| **Rate Limiter** | Redis-backed sliding-window hourly limiter per sender with automatic `moveToDelayed` rescheduling on overflow. |
-| **Concurrency & Throttling** | Multi-worker parallel processing with configurable worker concurrency and inter-email delay. |
-| **Fault Tolerance & Retries** | Configurable exponential backoff retry mechanism (default 3 attempts). Status updates tracked in DB. |
-| **Attachment Handling** | Direct multipart upload to Supabase S3 Object Storage, linked with foreign keys, and streamed on dispatch. |
-| **Draft Deletion** | Automatic cleanup of corresponding draft record from PostgreSQL once scheduled. |
-| **Authentication Middleware** | Supabase JWT verification guarding all protected scheduling endpoints. |
+
+| Category                      | Implementation Details                                                                                         |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| **Scheduler Engine**          | BullMQ + Redis delayed queue. Zero reliance on `cron` or `node-cron`. Supports multi-recipient campaigns.      |
+| **Persistence**               | PostgreSQL + Redis state machine. Survives process crashes and restarts without re-sending old emails.         |
+| **Rate Limiter**              | Redis-backed sliding-window hourly limiter per sender with automatic `moveToDelayed` rescheduling on overflow. |
+| **Concurrency & Throttling**  | Multi-worker parallel processing with configurable worker concurrency and inter-email delay.                   |
+| **Fault Tolerance & Retries** | Configurable exponential backoff retry mechanism (default 3 attempts). Status updates tracked in DB.           |
+| **Attachment Handling**       | Direct multipart upload to Supabase S3 Object Storage, linked with foreign keys, and streamed on dispatch.     |
+| **Draft Deletion**            | Automatic cleanup of corresponding draft record from PostgreSQL once scheduled.                                |
+| **Authentication Middleware** | Supabase JWT verification guarding all protected scheduling endpoints.                                         |
 
 ### Frontend Features
-| Feature | Description |
-| :--- | :--- |
-| **Google OAuth Login** | Real Google OAuth login flow powered by Supabase Auth with automatic session persistence. |
-| **Dashboard Layout** | Clean responsive UI following the Figma design, with dark mode toggle, user avatar, and navigation. |
+
+| Feature                  | Description                                                                                                               |
+| :----------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| **Google OAuth Login**   | Real Google OAuth login flow powered by Supabase Auth with automatic session persistence.                                 |
+| **Dashboard Layout**     | Clean responsive UI following the Figma design, with dark mode toggle, user avatar, and navigation.                       |
 | **Compose Modal / Page** | Rich compose interface with instant email validation, multi-recipient parsing, date-time picker, and attachment uploader. |
-| **Scheduled Emails Tab** | Real-time overview of all upcoming email campaigns, scheduled execution times, and current queue statuses. |
-| **Sent Emails Tab** | Comprehensive log of sent and failed emails with recipient info, subject, status badge, and sent timestamps. |
-| **Draft Management** | Saves work in progress to the database and removes drafts upon successful campaign scheduling. |
+| **Scheduled Emails Tab** | Real-time overview of all upcoming email campaigns, scheduled execution times, and current queue statuses.                |
+| **Sent Emails Tab**      | Comprehensive log of sent and failed emails with recipient info, subject, status badge, and sent timestamps.              |
+| **Draft Management**     | Saves work in progress to the database and removes drafts upon successful campaign scheduling.                            |
 
 ---
 
 ## Setup & Local Development
 
 ### Prerequisites
+
 - **Node.js** (v18.x or higher)
 - **PostgreSQL** instance
 - **Redis** instance (v6+)
 - **Supabase Account** (for Auth & S3 storage)
 
-Detailed setup instructions, environment variable configurations, and running commands have been fully modularized for clarity. 
+Detailed setup instructions, environment variable configurations, and running commands have been fully modularized for clarity.
 
 Please refer to our respective documentation files for step-by-step guidance:
+
 - **[Backend Setup Guide](./backend/README.md)**: Instructions for configuring PostgreSQL, Redis, Ethereal Email, running migrations, and starting the API/Worker.
 - **[Frontend Setup Guide](./frontend/README.md)**: Instructions for configuring Supabase Auth, setting up Next.js environment variables, and starting the dashboard.
 
@@ -227,9 +234,15 @@ Please refer to our respective documentation files for step-by-step guidance:
 
 ## Deployment Details
 
-| Component | Platform | URL |
-| :--- | :--- | :--- |
-| **Frontend** | Vercel | [https://frontend-eta-opal-86.vercel.app](https://frontend-eta-opal-86.vercel.app) |
-| **Backend API + Worker** | Railway | [https://backend-combined-production.up.railway.app](https://backend-combined-production.up.railway.app) |
-| **PostgreSQL & Redis** | Railway | Private internal network mesh |
-| **Authentication & Storage** | Supabase | Auth OAuth + S3-compatible bucket |
+| Component                    | Platform | URL                                                                                                      |
+| :--------------------------- | :------- | :------------------------------------------------------------------------------------------------------- |
+| **Frontend**                 | Vercel   | [https://frontend-eta-opal-86.vercel.app](https://frontend-eta-opal-86.vercel.app)                       |
+| **Backend API + Worker**     | Railway  | [https://backend-combined-production.up.railway.app](https://backend-combined-production.up.railway.app) |
+| **PostgreSQL & Redis**       | Railway  | Private internal network mesh                                                                            |
+| **Authentication & Storage** | Supabase | Auth OAuth + S3-compatible bucket                                                                        |
+
+---
+
+## Technical Decisions & Implementation
+
+For a deep dive into the engineering decisions behind this project (including why BullMQ was chosen over cron, how the sliding-window rate limiter works, and infrastructure trade-offs), please read the **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** file.
