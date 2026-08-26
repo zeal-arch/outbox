@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Search, Filter, RefreshCw, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 import Button from "@/components/ui/Button";
 
 export function AppHeader() {
@@ -19,8 +20,14 @@ export function AppHeader() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (localQuery.trim()) {
-      router.push(`/dashboard?q=${encodeURIComponent(localQuery)}`);
+      toast.info("Search functionality is a premium feature coming soon!");
+      setLocalQuery("");
     }
+  };
+
+  const handleRefresh = () => {
+    toast.success("Refreshing data...");
+    router.refresh();
   };
 
   return (
@@ -40,10 +47,10 @@ export function AppHeader() {
           </form>
         </div>
         
-        <Button variant="unstyled" size="none" className="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">
+        <Button variant="unstyled" size="none" onClick={() => toast.info("Filter settings coming soon!")} className="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">
           <Filter className="h-4 w-4" />
         </Button>
-        <Button variant="unstyled" size="none" className="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">
+        <Button variant="unstyled" size="none" onClick={handleRefresh} className="p-2 text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
