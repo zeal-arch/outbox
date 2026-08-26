@@ -32,7 +32,8 @@ function SentContent() {
     if (!token) return;
     setIsLoading(true);
     fetch(`${apiUrl}/api/emails/sent`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store"
     })
       .then(res => res.json())
       .then(data => setSentEmails(data.data || []))

@@ -83,9 +83,10 @@ export async function listSentEmails(req: Request, res: Response) {
   const user = (req as any).user;
   try {
     const result = await db.query(
-      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", status, is_starred FROM email_jobs WHERE sender_id = $1 AND status IN ('sent', 'failed') ORDER BY sent_at DESC, updated_at DESC",
+      "SELECT id, recipient_email as email, subject, body, sent_at as \"sentTime\", status, is_starred FROM email_jobs WHERE sender_id = $1 AND status IN ('sent', 'failed') ORDER BY COALESCE(sent_at, updated_at) DESC",
       [user.id]
     );
+    console.log(`[API] listSentEmails for sender ${user.id} found ${result.rows.length} rows`);
     res.json({ data: result.rows });
   } catch (err) {
     console.error("[EmailController] Failed to list sent emails:", err);
@@ -227,5 +228,27 @@ export async function toggleStar(req: Request, res: Response) {
   } catch (err) {
     console.error("[EmailController] Failed to toggle star:", err);
     res.status(500).json({ error: "Failed to toggle star" });
+  }
+}
+
+export async function deleteEmailById(req: Request, res: Response) {
+  const user = (req as any).user;
+  const { id } = req.params;
+  
+  try {
+    const result = await db.query(
+      "DELETE FROM email_jobs WHERE id = $1 AND sender_id = $2 RETURNING id",
+      [id, user.id]
+    );
+    
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Email not found or unauthorized" });
+      return;
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[EmailController] Failed to delete email:", err);
+    res.status(500).json({ error: "Failed to delete email" });
   }
 }

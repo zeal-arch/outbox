@@ -100,6 +100,25 @@ export default function EmailDetailPage() {
     }
   };
 
+  const deleteEmail = async () => {
+    if (!token || !email) return;
+    
+    // Optimistic UI update could go here if we had a parent context, 
+    // but we'll just redirect immediately
+    try {
+      await fetch(`${apiUrl}/api/emails/${email.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Force Next.js router cache to refresh so the sent list is updated
+      router.refresh();
+      router.push("/dashboard/sent");
+    } catch (err) {
+      console.error("Failed to delete:", err);
+      alert("Failed to delete email");
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen w-full bg-white dark:bg-gray-dark font-satoshi">
       {/* Top Bar */}
@@ -125,7 +144,10 @@ export default function EmailDetailPage() {
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
             <Archive className="w-5 h-5" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-2 text-gray-400 transition-colors">
+          <button 
+            onClick={deleteEmail}
+            className="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 transition-colors"
+          >
             <Trash2 className="w-5 h-5" />
           </button>
         </div>

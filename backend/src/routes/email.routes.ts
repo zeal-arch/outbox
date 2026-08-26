@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { listScheduledEmails, listSentEmails, scheduleEmail, getEmailById, listDrafts, saveDraft, deleteDraft, toggleStar } from "../controllers/email.controller.js";
+import { listScheduledEmails, listSentEmails, scheduleEmail, getEmailById, listDrafts, saveDraft, deleteDraft, toggleStar, deleteEmailById } from "../controllers/email.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 
 export const emailRouter = Router();
@@ -14,3 +14,4 @@ emailRouter.get("/scheduled", requireAuth, listScheduledEmails);
 emailRouter.get("/sent", requireAuth, listSentEmails);
 emailRouter.get("/:id", requireAuth, getEmailById);
 emailRouter.patch("/:id/star", requireAuth, toggleStar);
+emailRouter.delete("/:id", requireAuth, deleteEmailById);
