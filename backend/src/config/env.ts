@@ -16,9 +16,7 @@ const schema = z.object({
   ETHEREAL_PORT: z.coerce.number().default(587),
   ETHEREAL_USER: z.string().optional(),
   ETHEREAL_PASSWORD: z.string().optional(),
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
-  GOOGLE_CALLBACK_URL: z.string().url().optional(),
+
   SUPABASE_S3_ENDPOINT: z.string().url(),
   SUPABASE_S3_REGION: z.string().default("ap-northeast-1"),
   SUPABASE_S3_ACCESS_KEY: z.string().min(1),
@@ -46,11 +44,7 @@ export const env = {
     user: parsed.ETHEREAL_USER,
     password: parsed.ETHEREAL_PASSWORD
   },
-  google: {
-    clientId: parsed.GOOGLE_CLIENT_ID,
-    clientSecret: parsed.GOOGLE_CLIENT_SECRET,
-    callbackUrl: parsed.GOOGLE_CALLBACK_URL
-  },
+
   s3: {
     endpoint: parsed.SUPABASE_S3_ENDPOINT,
     region: parsed.SUPABASE_S3_REGION,

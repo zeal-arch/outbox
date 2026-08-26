@@ -27,8 +27,4 @@ dist-ssr
 .next
 out
 
-# env
-.env
-.env*.local
-
 .vercel
