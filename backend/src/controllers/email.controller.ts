@@ -46,6 +46,11 @@ export async function scheduleEmail(req: Request, res: Response) {
       }))
     });
 
+    if (req.body.draftId) {
+      await db.query("DELETE FROM email_drafts WHERE id = $1 AND sender_id = $2", [req.body.draftId, user.id]);
+    }
+
+
     res.status(201).json({
       message: "Emails scheduled successfully",
       jobsCount: jobs.length

@@ -139,6 +139,10 @@ function ComposeContent() {
       }
       formData.append("recipientEmails", JSON.stringify(parsedEmails));
       
+      if (draftId) {
+        formData.append("draftId", draftId);
+      }
+      
       attachments.forEach((att) => {
         if (att.file) {
           formData.append("attachments", att.file);
