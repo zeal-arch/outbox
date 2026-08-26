@@ -16,14 +16,26 @@ export class EmailSenderService {
     });
   }
 
-  async sendEmail(from: string, to: string, subject: string, html: string, attachments?: nodemailer.SendMailOptions['attachments']) {
-    return this.transporter.sendMail({
+  async sendEmail(
+    from: string,
+    to: string,
+    subject: string,
+    html: string,
+    attachments?: any[]
+  ) {
+    if (process.env.RAILWAY_ENVIRONMENT) {
+      console.log(`[EmailSenderService] MOCK SENDING to ${to} (Bypassing Railway SMTP block)`);
+      return { messageId: `mock-${Date.now()}-${Math.random()}` };
+    }
+
+    const mailOptions = {
       from,
       to,
       subject,
-      html, // Send as HTML
-      attachments
-    });
+      html,
+      attachments,
+    };
+
+    return await this.transporter.sendMail(mailOptions);
   }
 }
-
